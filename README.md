@@ -16,7 +16,7 @@ It mainly contains two programs (and they should be run in the following order):
 * It queries Elasticsearch with different query topics and writes the output to a file.
 * The output is a text file with retrieved results for each query in the standard trec_eval format.
 * You will need to modify the path to the query xml file on line 25.
-* You might want to change the name and location of the output text files on line 102 as per your preference.
+* You might want to change the name and location of the output text file on line 102 as per your preference.
 <br>
 
 After making the necessary modifications, the above programs can simply be executed from the command line as shown below.
