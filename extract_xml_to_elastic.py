@@ -153,7 +153,19 @@ def extract_data_xml():
               print ctr,'/',len(list_of_files)
 
 
-#Insert elastic_index function here to index data in Elasticsearch
+def elastic_index(ctr, extracted_data):
+       """
+       This function is used to index the extracted xml data by Elasticsearch.
+       It receives a counter value and the dictionary containing the extracted data from the extract_data_xml function. The counter value is used as the id during indexing.
+       """
+       
+       try:
+              es.index(index='ct', doc_type='xmldata', id=ctr, body=extracted_data)
+
+       except:
+              print 'Document not indexed!'
+       
+       return
 
 
 
