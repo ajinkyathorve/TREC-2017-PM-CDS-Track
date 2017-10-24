@@ -146,7 +146,7 @@ def extract_data_xml():
                      extracted_data['mesh_term'] = None
               
               #Pass the counter 'ctr' and the dictionary 'extracted_data' to elastic_index function which indexes it in Elasticsearch.
-#              elastic_index(ctr, extracted_data)
+              elastic_index(ctr, extracted_data)
               
               #Increment the counter and print the progress in the following format: current counter value/total number of input files.
               ctr+=1
@@ -162,8 +162,9 @@ def elastic_index(ctr, extracted_data):
        try:
               es.index(index='ct', doc_type='xmldata', id=ctr, body=extracted_data)
 
-       except:
-              print 'Document not indexed!'
+       except Exception as e:
+              print '\nDocument not indexed!'
+              print 'Error Message:',e,'\n'
        
        return
 
@@ -176,7 +177,11 @@ start_time = time.time()
 
 if __name__ == '__main__':
        #Create connection to Elasticsearch listening on localhost port 9200. It uses the Python Elasticsearch API which is the official low-level client for Elasticsearch.
-       es = elasticsearch_copy.Elasticsearch([{'host': 'localhost', 'port': 9200}])
+       try:
+              es = elasticsearch_copy.Elasticsearch([{'host': 'localhost', 'port': 9200}])
+       except Exception as e:
+              print '\nCannot connect to Elasticsearch!'
+              print 'Error Message:',e,'\n'
        #Call the function to start extracting the data
        extract_data_xml()
 
