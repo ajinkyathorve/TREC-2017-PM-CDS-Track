@@ -46,7 +46,7 @@ def extract_query_xml():
                      extracted_data['age'] = int(demographic.split('-')[0])
                      extracted_data['sex'] = demographic.split(' ')[1]
                      extracted_data['other'] = other
-#                            es_query(extracted_data)
+                     es_query(extracted_data)
        except:
               extracted_data['tnum'] = None
               extracted_data['disease'] = None
@@ -58,7 +58,57 @@ def extract_query_xml():
        return
 
 
-#Insert the es_query function here to query Elasticsearch
+def es_query(extracted_data):
+       """
+       This function is used to query Elasticsearch and write results to an output file.
+       It receives a dictionary containing the extracted query terms from the extract_query_xml function. After querying Elasticsearch, the retrieved results are written to an output file in the standard trec_eval format.
+       """
+       
+       try:
+              #Store the disease name from the received dictionary in the variable named query
+              query = extracted_data['disease']
+              #For a simple query without any customizations, uncomment the following line
+              #res = es.search(index='ct', q=query, size=1000)['hits']['hits']
+              #Current implementation uses a customized query with multi-match and post-filters in a manner deemed best possible for the current retrieval process. Comment the following query if you plan to use the simple query in the previous line.
+              #We limit the retrieved results to 1000. The results are arranged in decreasing order of their assigned scores. We assign a rank to each result starting from 1 to 1000 based on decreasing scores. We normalize the score for each result based on the score of the first result with the maximum score.
+              res = es.search(index='ct', body={
+                                          "query":
+                                                 {"bool":
+                                                        {"must":
+                                                               {"multi_match":
+                                                                      {"query":query, "type":"phrase_prefix", "fields":["brief_title","brief_summary","detailed_description","condition", "eligibility","keyword","mesh_term"]
+                                                                      }
+                                                               },
+                                                         "should":
+                                                                [
+                                                                 {"term":{"eligibility" : "query"}},
+                                                                 {"term":{"brief_summary" : "query"}},
+                                                                 {"term":{"detailed_description" : "query"}},
+                                                                 {"term":{"keyword" : "query"}},
+                                                                ]
+                                                        }
+                                                 },
+                                          "post_filter":
+                                                 {"term":
+                                                        {"gender":"all"}
+                                                 }
+                                          },
+                                   size=1000
+                     )['hits']['hits']
+              max_score = res[0]['_score']
+              rank_ctr = 1
+              
+              #Write the retrieved results to an output file in the standard trec_eval format
+              with open('/home/aj/Downloads/TREC/output/ub_trec_pm_2017_ct_run100.txt', 'a') as op_file:
+                     for i in res:
+                            op_file.write('{}\tQ0\t{}\t{}\t{}\t2_ec_complex\n'.format(extracted_data['tnum'],i['_source']['nct_id'],rank_ctr,round(i['_score']/max_score,4)))
+                            rank_ctr += 1
+               
+       except Exception as e:
+              print "\nUnable to query/write!"
+              print 'Error Message:',e,'\n'
+       
+       return
 
 
 
